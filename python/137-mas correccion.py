@@ -608,8 +608,31 @@ def desplazar(dx, dy, paso=1):
 def iniciar_bd():
     conexion = sqlite3.connect("datos_terreno.db")
     cursor = conexion.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS terreno (x INTEGER, y INTEGER, color TEXT, altura INTEGER, PRIMARY KEY (x, y))")
-    cursor.execute("CREATE TABLE IF NOT EXISTS nubes (x INTEGER, y INTEGER, color TEXT, altura INTEGER, PRIMARY KEY (x, y))")
+    
+    # Create the terrain table if it doesn't exist
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS terreno (
+        x INTEGER, 
+        y INTEGER, 
+        color TEXT, 
+        altura INTEGER, 
+        PRIMARY KEY (x, y)
+    )""")
+    
+    # Create the clouds table if it doesn't exist
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS nubes (
+        x INTEGER, 
+        y INTEGER, 
+        color TEXT, 
+        altura INTEGER, 
+        PRIMARY KEY (x, y)
+    )""")
+    
+    # Create indexes on the x and y columns to optimize queries
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_terreno_xy ON terreno (x, y)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_nubes_xy ON nubes (x, y)")
+    
     return conexion, cursor
 
 # Función para actualizar el multiplicador de altura

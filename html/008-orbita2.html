@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Sphere with Diffuse and Displacement Map and Transparent Blue Sphere</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Include Three.js from a CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Include OrbitControls from the Three.js examples -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Create the scene
+        const scene = new THREE.Scene();
+
+        // Create a camera, which determines what we'll see when we render the scene
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        // Create a renderer and attach it to our document
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add OrbitControls for zoom and rotation
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 0.2;
+        controls.maxDistance = 20;
+        controls.maxPolarAngle = Math.PI; // Allow full vertical rotation
+
+        // Create a sphere geometry for the land
+        const landGeometry = new THREE.SphereGeometry(1, 2048, 1024);
+
+        // Create a material with Phong shading that supports displacement mapping
+        const landMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0xcccccc,
+            displacementScale: 0.2
+        });
+
+        // Create a mesh using the geometry and material
+        const landSphere = new THREE.Mesh(landGeometry, landMaterial);
+        scene.add(landSphere);
+
+        // Create a transparent blue sphere slightly larger than the land sphere
+        const blueSphereGeometry = new THREE.SphereGeometry(1.1, 64, 64); // Slightly larger than the land sphere
+        const blueSphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0x0000ff, // Blue color
+            transparent: true,
+            opacity: 0.5
+        });
+
+        const blueSphere = new THREE.Mesh(blueSphereGeometry, blueSphereMaterial);
+        scene.add(blueSphere);
+
+        // Create a directional light to simulate the sun
+        const sunlight = new THREE.DirectionalLight(0xeeeeee, 1);
+        sunlight.position.set(10, 10, 10);
+        scene.add(sunlight);
+
+        // Optionally, add a slight ambient light to soften shadows
+        const ambientLight = new THREE.AmbientLight(0x000000);
+        scene.add(ambientLight);
+
+        // Load the diffuse texture and the displacement map
+        const textureLoader = new THREE.TextureLoader();
+        const textureUrl = 'difuso.png';
+        const displacementMapUrl = 'altura.png';
+
+        // Load the diffuse texture
+        textureLoader.load(
+            textureUrl,
+            function (texture) {
+                landMaterial.map = texture;
+                landMaterial.needsUpdate = true;
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.error('An error happened while loading the texture');
+            }
+        );
+
+        // Load the displacement map
+        textureLoader.load(
+            displacementMapUrl,
+            function (displacementMap) {
+                landMaterial.displacementMap = displacementMap;
+                landMaterial.needsUpdate = true;
+            },
+            function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            function (error) {
+                console.error('An error happened while loading the displacement map');
+            }
+        );
+
+        // Function to continuously render the scene
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update the controls
+            controls.update();
+
+            // Render the scene from the perspective of the camera
+            renderer.render(scene, camera);
+        }
+
+        animate(); // Start the animation loop
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
